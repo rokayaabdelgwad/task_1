@@ -1,13 +1,12 @@
+
 const xlsx = require('xlsx');
 const ExcelModel = require('../Models/excelModel');
-
-// Handle file upload and save data to MongoDB
 exports.uploadExcel = async (req, res) => {
   try {
     const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet);
+    const data = xlsx.utils.sheet_to_json(sheet, { defval: '' });
 
     const insertedData = await ExcelModel.insertMany(data);
     res.status(200).json(insertedData);
@@ -16,6 +15,33 @@ exports.uploadExcel = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
+exports.uploadExcelAndGetData = async (req, res) => {
+  try {
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(sheet, { defval: '' });
+
+    const insertedData = await DataModel.insertMany(data);
+
+    // Retrieve data by ID
+    const id = req.params.id;
+    const dataById = await DataModel.findById(id);
+
+    if (!dataById) {
+      return res.status(404).json({ message: 'Data not found for the provided ID' });
+    }
+
+    res.status(200).json({ insertedData, dataById });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+
 
 // Get all data from MongoDB
 exports.getAllData = async (req, res) => {
@@ -60,3 +86,4 @@ exports.deleteDataById = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+

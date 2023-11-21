@@ -2,11 +2,15 @@
 const mongoose = require('mongoose');
 
 const excelSchema = new mongoose.Schema({
-  id: Number,
-  name: String,
-  action: String,
-  responsibilities: String,
-  dueTo: Date,
+  ID:Number,
+  Name: String,
+ Description:{
+    type:String,
+    trim:true
+  },
+  Location: String,
+  Price: Number,
+  Color:String
 });
 
 const ExcelModel = mongoose.model('Excel', excelSchema);

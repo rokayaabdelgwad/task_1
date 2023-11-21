@@ -4,6 +4,7 @@ const multer = require('multer');
 
 const excelControllers = require('./../controllers/excelControllers');
 
+
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -12,5 +13,9 @@ router.get('/data', excelControllers.getAllData);
 router.get('/data/:id', excelControllers.getDataById);
 router.put('/data/:id', excelControllers.updateDataById);
 router.delete('/data/:id', excelControllers.deleteDataById);
+router.post('/uploadAndGetData/:id', upload.single('file'), excelControllers.uploadExcelAndGetData);
 
 module.exports = router;
+
+
+
