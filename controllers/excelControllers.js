@@ -1,39 +1,27 @@
 
 const xlsx = require('xlsx');
+const uuid = require('uuid');
 const ExcelModel = require('../Models/excelModel');
+
 exports.uploadExcel = async (req, res) => {
   try {
+    // Generate a unique ID for the file
+    const fileId = uuid.v4();
+
     const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const data = xlsx.utils.sheet_to_json(sheet, { defval: '' });
 
-    const insertedData = await ExcelModel.insertMany(data);
-    res.status(200).json(insertedData);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Internal Server Error');
-  }
-};
+    // Optionally, you can associate the unique file ID with the data
+    const dataWithFileId = data.map(entry => ({ ...entry, fileId }));
 
-exports.uploadExcelAndGetData = async (req, res) => {
-  try {
-    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet, { defval: '' });
+    const insertedData = await ExcelModel.insertMany(dataWithFileId);
 
-    const insertedData = await DataModel.insertMany(data);
-
-    // Retrieve data by ID
-    const id = req.params.id;
-    const dataById = await DataModel.findById(id);
-
-    if (!dataById) {
-      return res.status(404).json({ message: 'Data not found for the provided ID' });
-    }
-
-    res.status(200).json({ insertedData, dataById });
+    res.status(200).json({
+      fileId,
+      insertedData,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Internal Server Error');
